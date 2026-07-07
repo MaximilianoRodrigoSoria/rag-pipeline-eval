@@ -13,7 +13,7 @@ from functools import lru_cache
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-from src.config import Settings
+from rag_pipeline_eval.config import Settings
 
 
 @lru_cache(maxsize=2)

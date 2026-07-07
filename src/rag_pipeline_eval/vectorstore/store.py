@@ -14,7 +14,7 @@ import chromadb
 from llama_index.core import StorageContext
 from llama_index.vector_stores.chroma import ChromaVectorStore
 
-from src.config import Settings
+from rag_pipeline_eval.config import Settings
 
 
 def get_chroma_collection(settings: Settings):
@@ -38,3 +38,17 @@ def get_storage_context(settings: Settings) -> StorageContext:
 def collection_count(settings: Settings) -> int:
     """Cantidad de vectores ya indexados (útil para chequear estado)."""
     return get_chroma_collection(settings).count()
+
+
+def reset_collection(settings: Settings) -> None:
+    """Borra la colección para re-indexar desde cero (usado por --force).
+
+    Evita el footgun de re-indexar sobre una colección poblada (duplicaría
+    vectores). Si no existe, no hay nada que borrar.
+    """
+    settings.chroma_dir.mkdir(parents=True, exist_ok=True)
+    client = chromadb.PersistentClient(path=str(settings.chroma_dir))
+    try:
+        client.delete_collection(name=settings.chroma_collection)
+    except Exception:  # ponytail: delete_collection tira si no existe; es idempotente a propósito
+        pass

@@ -15,9 +15,9 @@ from llama_index.core import VectorStoreIndex
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import BaseNode
 
-from src.config import Settings
-from src.embeddings.embedder import get_embed_model
-from src.vectorstore.store import get_storage_context, get_vector_store
+from rag_pipeline_eval.config import Settings
+from rag_pipeline_eval.embeddings.embedder import get_embed_model
+from rag_pipeline_eval.vectorstore.store import get_storage_context, get_vector_store
 
 
 def build_index(nodes: list[BaseNode], settings: Settings) -> VectorStoreIndex:

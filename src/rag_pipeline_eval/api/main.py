@@ -10,9 +10,9 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from src.config import get_settings
-from src.generation.rag_chain import RagEngine
-from src.vectorstore.store import collection_count
+from rag_pipeline_eval.config import get_settings
+from rag_pipeline_eval.generation.rag_chain import RagEngine
+from rag_pipeline_eval.vectorstore.store import collection_count
 
 app = FastAPI(
     title="rag-pipeline-eval",

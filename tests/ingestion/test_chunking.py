@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.config import Settings
-from src.ingestion.chunking import build_node_parser, chunk_documents
+from rag_pipeline_eval.config import Settings
+from rag_pipeline_eval.ingestion.chunking import build_node_parser, chunk_documents
 
 pytest.importorskip("llama_index.core", reason="requiere llama-index instalado")
 

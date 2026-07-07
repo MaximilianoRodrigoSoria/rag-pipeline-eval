@@ -2,9 +2,8 @@
 
 Carga el corpus, lo trocea según la estrategia configurada, y persiste los
 embeddings en Chroma. Es idempotente: si la colección ya tiene vectores, no
-re-indexa salvo que se pase ``--force`` (que reconstruye desde cero usando una
-colección temporal, para no romper el estado previo en mounts que no permiten
-borrado).
+re-indexa salvo que se pase ``--force`` (que borra la colección y la reconstruye
+desde cero, evitando vectores duplicados).
 
 Uso:
     python -m scripts.index
@@ -16,12 +15,12 @@ from __future__ import annotations
 import argparse
 import sys
 
-from src.config import get_settings
-from src.embeddings.embedder import get_embed_model
-from src.ingestion.chunking import chunk_documents
-from src.ingestion.loaders import load_documents
-from src.retrieval.retriever import build_index
-from src.vectorstore.store import collection_count
+from rag_pipeline_eval.config import get_settings
+from rag_pipeline_eval.embeddings.embedder import get_embed_model
+from rag_pipeline_eval.ingestion.chunking import chunk_documents
+from rag_pipeline_eval.ingestion.loaders import load_documents
+from rag_pipeline_eval.retrieval.retriever import build_index
+from rag_pipeline_eval.vectorstore.store import collection_count, reset_collection
 
 
 def main() -> int:
@@ -43,6 +42,10 @@ def main() -> int:
         )
         return 0
 
+    if args.force and existing > 0:
+        print(f"--force: borrando {existing} vectores previos …")
+        reset_collection(settings)
+
     print(f"Cargando corpus desde {settings.corpus_path} …")
     documents = load_documents(settings.corpus_path)
     print(f"  {len(documents)} documento(s) cargado(s).")
@@ -54,9 +57,4 @@ def main() -> int:
 
     print("Indexando en Chroma (esto genera los embeddings) …")
     build_index(nodes, settings)
-    print(f"Listo. Vectores en la colección: {collection_count(settings)}")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    print(f"Listo. Vector

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.config import ROOT_DIR, Settings
+from rag_pipeline_eval.config import ROOT_DIR, Settings
 
 
 def test_defaults_razonables():

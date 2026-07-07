@@ -13,8 +13,8 @@ from dataclasses import dataclass, field
 from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.llms.anthropic import Anthropic
 
-from src.config import Settings
-from src.retrieval.retriever import load_index
+from rag_pipeline_eval.config import Settings
+from rag_pipeline_eval.retrieval.retriever import load_index
 
 # Prompt con guardas explícitas: sin invención, y si no hay soporte, decirlo.
 QA_PROMPT = PromptTemplate(

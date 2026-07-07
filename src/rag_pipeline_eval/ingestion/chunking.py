@@ -21,7 +21,7 @@ from llama_index.core.node_parser import (
 )
 from llama_index.core.schema import BaseNode, Document
 
-from src.config import Settings
+from rag_pipeline_eval.config import Settings
 
 
 def build_node_parser(settings: Settings, embed_model=None) -> NodeParser:

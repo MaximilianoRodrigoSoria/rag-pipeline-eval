@@ -24,8 +24,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src.config import ROOT_DIR, get_settings
-from src.generation.rag_chain import RagEngine
+from rag_pipeline_eval.config import ROOT_DIR, get_settings
+from rag_pipeline_eval.generation.rag_chain import RagEngine
 
 
 def load_golden(path: Path) -> list[dict]:
