@@ -11,11 +11,32 @@
   <a href="#"><img src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/DietrichGebert/ponytail"><img src="https://img.shields.io/badge/built_with-ponytail-111111?style=flat-square" alt="ponytail"></a>
+  <img src="https://img.shields.io/badge/layout-src%2Fpackage-2088FF?style=flat-square" alt="src layout">
+  <img src="https://img.shields.io/badge/license-MIT-success?style=flat-square" alt="MIT">
+</p>
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=7C3AED&center=true&vCenter=true&width=820&lines=Retrieval-Augmented+Generation%2C+medido+no+asumido;faithfulness+%C2%B7+relevancia+%C2%B7+context+precision%2Frecall;LlamaIndex+%2B+Chroma+%2B+Claude+%2B+RAGAS" alt="typing SVG">
+</p>
+
 ---
 
 # rag-pipeline-eval
 
 Pipeline de **Retrieval-Augmented Generation** sobre un corpus propio, con un módulo de **evaluación automatizada** que mide la calidad de las respuestas (faithfulness y relevancia) en lugar de asumirla.
+
+<details>
+<summary><b>📑 Tabla de contenidos</b></summary>
+
+- [Objetivo](#objetivo)
+- [Stack tecnológico sugerido](#stack-tecnológico-sugerido)
+- [Estructura de carpetas propuesta](#estructura-de-carpetas-propuesta)
+- [Checklist de implementación](#checklist-de-implementación)
+- [Puesta en marcha (scaffold generado)](#puesta-en-marcha-scaffold-generado)
+
+</details>
 
 ## Objetivo
 
@@ -96,21 +117,4 @@ rag-pipeline-eval/
 
 ### Fase 3 — Embeddings y vector store
 
-- [ ] Implementar el `embedder` con interfaz intercambiable (OpenAI vs open source).
-- [ ] Implementar la abstracción de vector store con una interfaz común y una implementación Chroma.
-- [ ] Script de indexación idempotente (re-indexar sin duplicar).
-- [ ] (Opcional) Añadir implementación Qdrant y comparar.
-
-### Fase 4 — Retrieval y generación
-
-- [ ] Implementar el retriever (similarity search + filtros por metadato).
-- [ ] (Opcional) Añadir un reranker (`cross-encoder` / Cohere Rerank) y medir su impacto.
-- [ ] Diseñar el prompt del `rag_chain` con instrucciones anti-alucinación y cita de fuentes.
-- [ ] Exponer `POST /query` en FastAPI devolviendo respuesta + fuentes recuperadas.
-
-### Fase 5 — Evaluación (el diferenciador)
-
-- [ ] Construir el dataset dorado `qa_golden.jsonl` (mínimo 20–30 preguntas representativas).
-- [ ] Integrar RAGAS: faithfulness, answer_relevancy, context_precision, context_recall.
-- [ ] `run_eval.py` que genere un reporte reproducible en `eval/reports/`.
-- [ ] Comparar al menos dos configuraciones (ej. chunk size A vs B, con/sin reranker) y documentar cuál gana
+- [ ] Imple
