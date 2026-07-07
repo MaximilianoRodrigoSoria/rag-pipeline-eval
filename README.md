@@ -116,5 +116,88 @@ rag-pipeline-eval/
 - [ ] Persistir chunks + metadatos (source, page, chunk_id) en `data/processed/`.
 
 ### Fase 3 — Embeddings y vector store
+- [ ] Implementar el `embedder` con interfaz intercambiable (OpenAI vs open source).
+- [ ] Implementar la abstracción de vector store con una interfaz común y una implementación Chroma.
+- [ ] Script de indexación idempotente (re-indexar sin duplicar).
+- [ ] (Opcional) Añadir implementación Qdrant y comparar.
 
-- [ ] Imple
+### Fase 4 — Retrieval y generación
+
+- [ ] Implementar el retriever (similarity search + filtros por metadato).
+- [ ] (Opcional) Añadir un reranker (`cross-encoder` / Cohere Rerank) y medir su impacto.
+- [ ] Diseñar el prompt del `rag_chain` con instrucciones anti-alucinación y cita de fuentes.
+- [ ] Exponer `POST /query` en FastAPI devolviendo respuesta + fuentes recuperadas.
+
+### Fase 5 — Evaluación (el diferenciador)
+
+- [ ] Construir el dataset dorado `qa_golden.jsonl` (mínimo 20–30 preguntas representativas).
+- [ ] Integrar RAGAS: faithfulness, answer_relevancy, context_precision, context_recall.
+- [ ] `run_eval.py` que genere un reporte reproducible en `eval/reports/`.
+- [ ] Comparar al menos dos configuraciones (ej. chunk size A vs B, con/sin reranker) y documentar cuál gana y por qué.
+- [ ] (Opcional) Fijar umbrales mínimos y hacer que la evaluación falle si se cruzan (base para CI).
+
+### Fase 6 — Documentación
+
+- [ ] README con instrucciones de setup, indexación y consulta.
+- [ ] ADR breve: elección de vector store y estrategia de chunking.
+- [ ] Tabla de resultados de evaluación en el README con la configuración final.
+
+## Criterios de "terminado"
+
+Se puede indexar un corpus, consultar vía API y **regenerar un reporte de evaluación con métricas cuantitativas** que respalden las decisiones de diseño. La calidad del RAG está medida, no asumida.
+
+---
+
+## Puesta en marcha (scaffold generado)
+
+Stack de arranque: **LlamaIndex** + **embeddings open source** (sentence-transformers, corren en local) + **Claude** para la generación + **Chroma** como vector store.
+
+### 1. Instalar dependencias (Poetry)
+
+```bash
+poetry install                 # dependencias base
+poetry install --with eval,dev # + evaluación (RAGAS) y herramientas de dev
+```
+
+### 2. Configurar el entorno
+
+```bash
+cp .env.example .env
+# Editar .env y completar ANTHROPIC_API_KEY
+```
+
+### 3. Indexar el corpus
+
+Dejá tus documentos en `data/raw/` (ya hay dos de ejemplo) y corré:
+
+```bash
+poetry run python -m scripts.index          # idempotente
+poetry run python -m scripts.index --force  # re-indexar
+```
+
+### 4. Levantar la API y consultar
+
+```bash
+poetry run uvicorn rag_pipeline_eval.api.main:app --reload
+# En otra terminal:
+curl -X POST localhost:8000/query -H "Content-Type: application/json" \
+  -d '{"question": "¿Qué mide la métrica faithfulness?"}'
+```
+
+### 5. Evaluar la calidad
+
+```bash
+poetry run python -m eval.run_eval --tag baseline
+# Reporte en eval/reports/baseline-<timestamp>.json
+```
+
+### Tests
+
+```bash
+poetry run pytest
+```
+
+> El código está organizado por responsabilidad en `src/rag_pipeline_eval/`
+> (ingestion, embeddings, vectorstore, retrieval, generation, api), con interfaces
+> intercambiables para poder comparar configuraciones — que es el insumo del
+> módulo de evaluación.
