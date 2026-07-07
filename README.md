@@ -42,7 +42,7 @@ Pipeline de **Retrieval-Augmented Generation** sobre un corpus propio, con un m�
 
 Construir un RAG end-to-end, reproducible y medible: ingerir documentos propios, trocearlos (chunking), generar embeddings, almacenarlos en un vector store, recuperar contexto relevante y generar respuestas fundamentadas. El diferencial del proyecto no es "que responda", sino **demostrar con métricas** que responde bien: sin alucinar (faithfulness), atendiendo a la pregunta (answer relevancy) y recuperando el contexto correcto (context precision/recall).
 
-El resultado es un servicio consultable (API o CLI) más un reporte de evaluación que se puede regenerar en cada cambio del pipeline, sirviendo de base para los demás proyectos del portfolio.
+El resultado es un servicio consultable (API o CLI) más un reporte de evaluación que se puede regenerar en cada cambio del pipeline, para tomar decisiones de diseño con datos.
 
 ## Stack tecnológico sugerido
 
