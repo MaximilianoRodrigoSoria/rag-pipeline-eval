@@ -57,4 +57,9 @@ def main() -> int:
 
     print("Indexando en Chroma (esto genera los embeddings) …")
     build_index(nodes, settings)
-    print(f"Listo. Vector
+    print(f"Listo. Vectores en la colección: {collection_count(settings)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

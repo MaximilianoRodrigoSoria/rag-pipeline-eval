@@ -37,39 +37,47 @@ El resultado es un servicio consultable (API o CLI) más un reporte de evaluaci�
 
 ## Estructura de carpetas propuesta
 
+Sigue el **src layout con paquete nombrado** (estándar de mercado para un paquete instalable):
+
 ```
 rag-pipeline-eval/
 ├── README.md
+├── AGENTS.md                     # Ruleset ponytail (código mínimo)
 ├── pyproject.toml
 ├── .env.example
 ├── data/
-│   ├── raw/                  # Corpus original (PDF, MD, HTML, TXT)
-│   └── processed/            # Chunks y metadatos intermedios
+│   ├── raw/                      # Corpus original (PDF, MD, HTML, TXT)
+│   ├── interim/                  # Intermedios de procesamiento
+│   ├── processed/                # Vector store (Chroma) — git-ignored
+│   └── external/                 # Datos de terceros
 ├── src/
-│   ├── config.py            # Settings (pydantic-settings): modelos, chunk size, top_k
-│   ├── ingestion/
-│   │   ├── loaders.py       # Carga por tipo de documento
-│   │   └── chunking.py      # Estrategias de chunking (fixed, recursive, semantic)
-│   ├── embeddings/
-│   │   └── embedder.py      # Wrapper del modelo de embeddings
-│   ├── vectorstore/
-│   │   └── store.py         # Abstracción Chroma/Qdrant (interfaz común)
-│   ├── retrieval/
-│   │   └── retriever.py     # Búsqueda por similitud + reranking opcional
-│   ├── generation/
-│   │   └── rag_chain.py     # Prompt + recuperación + LLM
-│   └── api/
-│       └── main.py          # FastAPI: POST /query
+│   └── rag_pipeline_eval/        # Paquete importable
+│       ├── config.py            # Settings (pydantic-settings): modelos, chunk size, top_k
+│       ├── ingestion/
+│       │   ├── loaders.py       # Carga por tipo de documento
+│       │   └── chunking.py      # Estrategias de chunking (sentence, semantic)
+│       ├── embeddings/
+│       │   └── embedder.py      # Modelo de embeddings (factory intercambiable)
+│       ├── vectorstore/
+│       │   └── store.py         # Abstracción Chroma/Qdrant (interfaz común)
+│       ├── retrieval/
+│       │   └── retriever.py     # Índice + búsqueda por similitud
+│       ├── generation/
+│       │   └── rag_chain.py     # Prompt + recuperación + LLM (Claude)
+│       └── api/
+│           └── main.py          # FastAPI: POST /query
+├── scripts/
+│   └── index.py                 # Indexación idempotente (CLI)
 ├── eval/
 │   ├── datasets/
-│   │   └── qa_golden.jsonl  # Preguntas + respuestas/contexto de referencia
-│   ├── run_eval.py          # Corre RAGAS/DeepEval y genera el reporte
-│   └── reports/             # Salidas de evaluación (JSON/HTML/MD) versionadas
-├── notebooks/
-│   └── explore.ipynb        # Exploración y tuning de chunking/top_k
-└── tests/
-    ├── test_chunking.py
-    └── test_retrieval.py
+│   │   └── qa_golden.jsonl      # Preguntas + respuestas de referencia
+│   ├── run_eval.py              # Corre RAGAS y genera el reporte
+│   └── reports/                 # Salidas de evaluación (JSON/CSV) versionadas
+├── notebooks/                   # Exploración y tuning de chunking/top_k
+└── tests/                       # Espejan src/: tests/ingestion/, etc.
+    ├── ingestion/
+    │   └── test_chunking.py
+    └── test_config.py
 ```
 
 ## Checklist de implementación
@@ -105,15 +113,4 @@ rag-pipeline-eval/
 - [ ] Construir el dataset dorado `qa_golden.jsonl` (mínimo 20–30 preguntas representativas).
 - [ ] Integrar RAGAS: faithfulness, answer_relevancy, context_precision, context_recall.
 - [ ] `run_eval.py` que genere un reporte reproducible en `eval/reports/`.
-- [ ] Comparar al menos dos configuraciones (ej. chunk size A vs B, con/sin reranker) y documentar cuál gana y por qué.
-- [ ] (Opcional) Fijar umbrales mínimos y hacer que la evaluación falle si se cruzan (base para CI).
-
-### Fase 6 — Documentación
-
-- [ ] README con instrucciones de setup, indexación y consulta.
-- [ ] ADR breve: elección de vector store y estrategia de chunking.
-- [ ] Tabla de resultados de evaluación en el README con la configuración final.
-
-## Criterios de "terminado"
-
-Se puede indexar un corpus, consultar vía API y **regenerar un reporte de evaluación con métricas cuantitativas** que respalden las decisiones de diseño. La calidad del RAG está medida, no asumida.
+- [ ] Comparar al menos dos configuraciones (ej. chunk size A vs B, con/sin reranker) y documentar cuál gana
