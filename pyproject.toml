@@ -1,0 +1,69 @@
+[tool.poetry]
+name = "rag-pipeline-eval"
+version = "0.1.0"
+description = "Pipeline RAG sobre corpus propio con evaluación automatizada (faithfulness, relevancia)."
+readme = "README.md"
+license = "MIT"
+authors = ["Maximiliano R. Soria"]
+packages = [
+    { include = "src" },
+    { include = "scripts" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Núcleo LlamaIndex
+llama-index-core = ">=0.11,<0.13"
+llama-index-embeddings-huggingface = ">=0.3"   # embeddings open source (sentence-transformers)
+llama-index-llms-anthropic = ">=0.3"           # generación con Claude
+llama-index-vector-stores-chroma = ">=0.2"     # vector store local
+chromadb = ">=0.5"
+sentence-transformers = ">=3.0"
+# API
+fastapi = ">=0.111"
+uvicorn = { extras = ["standard"], version = ">=0.30" }
+# Config y utilidades
+pydantic-settings = ">=2.3"
+python-dotenv = ">=1.0"
+
+# Evaluación automatizada del RAG (opcional): poetry install --with eval
+[tool.poetry.group.eval]
+optional = true
+
+[tool.poetry.group.eval.dependencies]
+ragas = ">=0.2,<0.3"
+datasets = ">=2.19"
+langchain-anthropic = ">=0.2"     # LLM juez para RAGAS
+langchain-huggingface = ">=0.1"   # embeddings para métricas de RAGAS
+pandas = ">=2.2"
+
+# Herramientas de desarrollo (opcional): poetry install --with dev
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.2"
+ruff = ">=0.5"
+black = ">=24.4"
+
+[tool.poetry.scripts]
+rag-index = "scripts.index:main"
+
+[build-system]
+requires = ["poetry-core>=1.9"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
