@@ -1,18 +1,16 @@
 """API FastAPI del pipeline RAG.
 
-Expone `POST /query` que recibe una pregunta y devuelve la respuesta generada
-más las fuentes recuperadas. El motor RAG se inicializa de forma perezosa en el
-primer request (para no cargar el índice/LLM al importar el módulo).
-
 Buenas prácticas aplicadas (equivalentes a features de Spring):
+- Inyección de dependencias con `Depends(get_engine)` (patrón DI), lo que permite
+  overridear el motor en tests (`app.dependency_overrides`).
 - Endpoint async + threadpool para la llamada bloqueante al LLM (patrón `@Async`).
 - Exception handler global que traduce errores de config a HTTP (patrón
-  `@ControllerAdvice`), en vez de try/except repetido en cada endpoint.
+  `@ControllerAdvice`).
 """
 
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -31,7 +29,7 @@ _engine: RagEngine | None = None
 
 
 def get_engine() -> RagEngine:
-    """Inicializa el motor RAG una sola vez (lazy)."""
+    """Provee el motor RAG (lazy singleton). Se puede overridear en tests."""
     global _engine
     if _engine is None:
         _engine = RagEngine(get_settings())
@@ -66,11 +64,11 @@ def health() -> dict:
 
 
 @app.post("/query", response_model=QueryResponse)
-async def query(req: QueryRequest) -> QueryResponse:
+async def query(req: QueryRequest, engine: RagEngine = Depends(get_engine)) -> QueryResponse:
     """Responde una pregunta usando el corpus indexado.
 
-    La query de LlamaIndex es bloqueante (I/O + llamada al LLM); la corremos en
-    un threadpool para no bloquear el event loop.
+    La query de LlamaIndex es bloqueante (I/O + LLM); la corremos en un threadpool
+    para no bloquear el event loop.
     """
-    result = await run_in_threadpool(lambda: get_engine().query(req.question))
+    result = await run_in_threadpool(lambda: engine.query(req.question))
     return QueryResponse(answer=result.answer, sources=result.sources)

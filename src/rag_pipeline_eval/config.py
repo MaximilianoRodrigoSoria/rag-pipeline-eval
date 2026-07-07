@@ -1,8 +1,7 @@
 """Configuración central del pipeline RAG.
 
 Todas las settings se leen desde variables de entorno (o un archivo `.env`)
-mediante pydantic-settings, de modo que no haya valores mágicos dispersos por
-el código. Ver `.env.example` para la lista completa.
+mediante pydantic-settings. Ver `.env.example` para la lista completa.
 """
 
 from __future__ import annotations
@@ -27,11 +26,21 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # --- Proveedor de generación ---
+    # "anthropic" (Claude, por API) o "ollama" (LLM local). Conmutable por .env.
+    llm_provider: Literal["anthropic", "ollama"] = Field(
+        default="anthropic", alias="LLM_PROVIDER"
+    )
+
     # --- Generación (Claude) ---
     anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
     llm_model: str = Field(default="claude-3-5-sonnet-latest", alias="LLM_MODEL")
     llm_max_tokens: int = Field(default=1024, alias="LLM_MAX_TOKENS")
     llm_temperature: float = Field(default=0.0, alias="LLM_TEMPERATURE")
+
+    # --- Generación (Ollama, local) ---
+    ollama_model: str = Field(default="llama3.1:8b", alias="OLLAMA_MODEL")
+    ollama_base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
 
     # --- Embeddings (open source) ---
     embed_model: str = Field(default="intfloat/multilingual-e5-small", alias="EMBED_MODEL")
@@ -53,7 +62,6 @@ class Settings(BaseSettings):
     # --- Datos ---
     corpus_dir: str = Field(default="./data/raw", alias="CORPUS_DIR")
 
-    # --- Paths resueltos (absolutos, relativos a la raíz del proyecto) ---
     def path(self, value: str) -> Path:
         """Convierte una ruta relativa de config en absoluta respecto a la raíz."""
         p = Path(value)

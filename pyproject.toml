@@ -26,6 +26,13 @@ uvicorn = { extras = ["standard"], version = ">=0.30" }
 pydantic-settings = ">=2.3"
 python-dotenv = ">=1.0"
 
+# LLM local (opcional): poetry install --with local  → habilita LLM_PROVIDER=ollama
+[tool.poetry.group.local]
+optional = true
+
+[tool.poetry.group.local.dependencies]
+llama-index-llms-ollama = ">=0.3"
+
 # Evaluación automatizada del RAG (opcional): poetry install --with eval
 [tool.poetry.group.eval]
 optional = true
@@ -43,6 +50,7 @@ optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.2"
+httpx = ">=0.27"   # requerido por fastapi.testclient.TestClient
 ruff = ">=0.5"
 black = ">=24.4"
 
@@ -63,4 +71,8 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.black]
 line-length = 100
-target-version = ["py311"
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]

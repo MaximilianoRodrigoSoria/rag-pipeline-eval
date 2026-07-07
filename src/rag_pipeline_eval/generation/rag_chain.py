@@ -1,9 +1,8 @@
-"""Cadena RAG: recuperación + generación con Claude.
+"""Cadena RAG: recuperación + generación con el LLM configurado.
 
-Arma un query engine sobre el índice con un prompt de sistema anti-alucinación
-que obliga al modelo a responder SOLO con el contexto recuperado y a citar las
-fuentes. Devuelve la respuesta junto con los fragmentos usados, de modo que la
-salida sea auditable y sirva de insumo para la evaluación (faithfulness, etc.).
+El LLM se inyecta (o se resuelve por config vía `get_llm`), de modo que:
+- se puede cambiar de proveedor (Claude API / Ollama local) por `.env`, y
+- los tests pueden pasar un LLM mockeado sin API key ni modelo real.
 """
 
 from __future__ import annotations
@@ -11,9 +10,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from llama_index.core import PromptTemplate, VectorStoreIndex
-from llama_index.llms.anthropic import Anthropic
 
 from rag_pipeline_eval.config import Settings
+from rag_pipeline_eval.llm import get_llm
 from rag_pipeline_eval.retrieval.retriever import load_index
 
 # Prompt con guardas explícitas: sin invención, y si no hay soporte, decirlo.
@@ -40,26 +39,20 @@ class RagAnswer:
     sources: list[dict] = field(default_factory=list)
 
 
-def _build_llm(settings: Settings) -> Anthropic:
-    if not settings.anthropic_api_key:
-        raise RuntimeError(
-            "Falta ANTHROPIC_API_KEY. Copiá .env.example a .env y completá la key."
-        )
-    return Anthropic(
-        model=settings.llm_model,
-        api_key=settings.anthropic_api_key,
-        max_tokens=settings.llm_max_tokens,
-        temperature=settings.llm_temperature,
-    )
-
-
 class RagEngine:
-    """Motor RAG reutilizable (carga el índice y el LLM una sola vez)."""
+    """Motor RAG reutilizable (carga índice y LLM una sola vez).
 
-    def __init__(self, settings: Settings, index: VectorStoreIndex | None = None):
+    Args:
+        settings: configuración.
+        index: índice ya construido (opcional; si falta se carga de Chroma).
+        llm: LLM a usar (opcional; si falta se resuelve por config). Este es el
+            seam para inyectar Claude/Ollama real o un mock en tests.
+    """
+
+    def __init__(self, settings: Settings, index: VectorStoreIndex | None = None, llm=None):
         self.settings = settings
         self.index = index or load_index(settings)
-        self.llm = _build_llm(settings)
+        self.llm = llm or get_llm(settings)
         self.query_engine = self.index.as_query_engine(
             llm=self.llm,
             similarity_top_k=settings.top_k,
