@@ -1,3 +1,18 @@
+<p align="center">
+<a href="https://www.linkedin.com/in/soriamaximilianorodrigo/" target="_blank" rel="noopener noreferrer">
+<img width="100%" height="100%" src="docs/img/banner.gif" alt="rag-pipeline-eval"></a>
+</p>
+
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/RAG-LangChain_%7C_LlamaIndex-1C3C3C" alt="RAG"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Vector_Store-Chroma_%7C_Qdrant-FF4B4B" alt="Vector Store"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Eval-RAGAS-0F6E56" alt="Eval"></a>
+  <a href="#"><img src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
+</p>
+
+---
+
 # rag-pipeline-eval
 
 Pipeline de **Retrieval-Augmented Generation** sobre un corpus propio, con un módulo de **evaluación automatizada** que mide la calidad de las respuestas (faithfulness y relevancia) en lugar de asumirla.
