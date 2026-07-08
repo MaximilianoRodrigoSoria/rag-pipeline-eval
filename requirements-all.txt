@@ -14,10 +14,10 @@ python-dotenv>=1.0
 # tests
 pytest>=8.2
 httpx>=0.27
-# evaluación (RAGAS)
-ragas>=0.2,<0.3
+# evaluación (RAGAS) — 0.3.9: sin el import roto de vertexai de las 0.2.x/0.4.x
+ragas==0.3.9
 datasets>=2.19
 langchain-anthropic>=0.2
 langchain-huggingface>=0.1
-pandas>=2.2
 langchain-ollama>=0.2
+pandas>=2.2
