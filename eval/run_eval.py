@@ -54,6 +54,33 @@ def collect_samples(engine: RagEngine, golden: list[dict]) -> dict[str, list]:
     }
 
 
+def _patch_ragas_vertexai() -> None:
+    """RAGAS importa `ChatVertexAI` desde `langchain_community.chat_models.vertexai`,
+    ruta que las versiones nuevas de langchain-community removieron. Como no usamos
+    VertexAI (el juez es Ollama/Claude), registramos un stub en sys.modules para que
+    el import de RAGAS no rompa. Ver ragas#2741 / #2745.
+    """
+    import sys
+    import types
+
+    name = "langchain_community.chat_models.vertexai"
+    if name in sys.modules:
+        return
+    try:  # si la ruta real existe en esta instalación, no hacemos nada
+        __import__(name)
+        return
+    except Exception:
+        pass
+
+    class ChatVertexAI:  # stub inofensivo: nunca se instancia en el flujo Ollama/Claude
+        def __init__(self, *args, **kwargs):
+            raise NotImplementedError("VertexAI no configurado (stub para ragas).")
+
+    stub = types.ModuleType(name)
+    stub.ChatVertexAI = ChatVertexAI
+    sys.modules[name] = stub
+
+
 def _judge_llm(settings):
     """Devuelve el LLM juez según el proveedor configurado (imports diferidos)."""
     if settings.llm_provider == "ollama":
@@ -76,6 +103,8 @@ def _judge_llm(settings):
 
 def run_ragas(samples: dict[str, list], settings) -> "object":
     """Evalúa con RAGAS usando el juez configurado y embeddings open source."""
+    _patch_ragas_vertexai()
+
     from datasets import Dataset
     from langchain_huggingface import HuggingFaceEmbeddings
     from ragas import evaluate
