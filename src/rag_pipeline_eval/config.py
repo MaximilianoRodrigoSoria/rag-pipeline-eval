@@ -24,6 +24,9 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        # Permite construir Settings(campo=...) por nombre además de por alias/env var
+        # (necesario para overridear settings en tests).
+        populate_by_name=True,
     )
 
     # --- Proveedor de generación ---
