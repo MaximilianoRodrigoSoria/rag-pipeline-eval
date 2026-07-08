@@ -1,20 +1,14 @@
-# Servicios de apoyo para desarrollo y pruebas del RAG.
-#   Todo:      docker compose up -d
-#   Solo uno:  docker compose up -d qdrant
-services:
-  # Vector store alternativo a Chroma (el README contempla migrar a Qdrant).
-  qdrant:
-    image: qdrant/qdrant:latest
-    ports:
-      - "6333:6333"   # REST / dashboard
-      - "6334:6334"   # gRPC
-    volumes:
-      - qdrant_data:/qdrant/storage
-    restart: unless-stopped
+# Servicios de apoyo para desarrollo/pruebas del RAG.
+#   Levantar Ollama:      docker compose up -d ollama
+#   Bajar el modelo:      docker compose --profile pull up ollama-pull
+#   (opcional) Qdrant:    docker compose up -d qdrant
+#
+# El RAG lo usa vía OLLAMA_BASE_URL=http://localhost:11434 (default del .env).
+# Ojo: no corras además el Ollama nativo, chocarían en el puerto 11434.
 
-  # LLM local para el proveedor "ollama" (LLM_PROVIDER=ollama en el .env).
-  # Para usar la GPU (RTX 3070), descomentá el bloque 'deploy' y tené el
-  # NVIDIA Container Toolkit instalado. Luego: docker exec -it <c> ollama pull llama3.1:8b
+services:
+  # LLM local. Descomentá el bloque 'deploy' para usar la GPU (RTX 3070);
+  # requiere Docker Desktop con soporte GPU (WSL2 + NVIDIA). Sin eso, corre en CPU.
   ollama:
     image: ollama/ollama:latest
     ports:
@@ -22,6 +16,11 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     # deploy:
     #   resources:
     #     reservations:
@@ -30,6 +29,30 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
+  # Baja el modelo DENTRO del contenedor de Ollama. Uso puntual:
+  #   docker compose --profile pull up ollama-pull
+  ollama-pull:
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.1:8b}
+    entrypoint: ["/bin/sh", "-c", "sleep 3; ollama pull \"$${OLLAMA_MODEL}\""]
+    restart: "no"
+    profiles: ["pull"]
+
+  # Vector store alternativo a Chroma (opcional; el README contempla Qdrant).
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+    profiles: ["qdrant"]
+
 volumes:
-  qdrant_data:
   ollama_data:
+  qdrant_data:
