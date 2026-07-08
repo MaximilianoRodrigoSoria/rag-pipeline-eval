@@ -100,7 +100,7 @@ def _judge_llm(settings):
     from langchain_anthropic import ChatAnthropic
 
     return ChatAnthropic(
-        model=settings.llm_model,
+        model=settings.effective_judge_model,
         api_key=settings.anthropic_api_key,
         temperature=0.0,
         max_tokens=settings.llm_max_tokens,
@@ -172,3 +172,14 @@ def main() -> int:
     (reports_dir / f"{stem}.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    scores.to_csv(reports_dir / f"{stem}.csv", index=False)
+
+    print("\n=== Resultados (promedios) ===")
+    for metric, value in summary["metrics"].items():
+        print(f"  {metric:20s}: {value:.3f}")
+    print(f"\nReporte guardado en eval/reports/{stem}.json")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

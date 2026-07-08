@@ -31,13 +31,125 @@ Pipeline de <b>Retrieval-Augmented Generation</b> sobre un corpus propio, con un
 en lugar de asumirla.
 </p>
 
-## Objetivo
+## ¿Qué resuelve este proyecto?
 
-Construir un RAG end-to-end, reproducible y medible: ingerir documentos propios, trocearlos (chunking), generar embeddings, almacenarlos en un vector store, recuperar contexto relevante y generar respuestas fundamentadas. El diferencial del proyecto no es "que responda", sino **demostrar con métricas** que responde bien: sin alucinar (faithfulness), atendiendo a la pregunta (answer relevancy) y recuperando el contexto correcto (context precision/recall).
+Un RAG es fácil de armar y difícil de confiar. Cualquiera conecta un LLM a un vector store y obtiene respuestas que *suenan* bien; el problema es que "suena bien" no es una métrica. Cuando cambiás el tamaño de chunk, el modelo de embeddings o el `top_k`, ¿mejoró o empeoró? Sin medición, es una caja negra y las decisiones se toman por intuición.
 
-El resultado es un servicio consultable (API o CLI) más un reporte de evaluación que se puede regenerar en cada cambio del pipeline, para tomar decisiones de diseño con datos.
+Este proyecto cierra ese hueco: construye el RAG end-to-end **y** le adosa un módulo de evaluación reproducible. Cada respuesta se juzga contra un dataset de referencia con cuatro métricas objetivas, y el resultado queda en un reporte versionado que se regenera en cada cambio del pipeline. El diferencial no es "que responda", sino **demostrar con números que responde bien**: sin alucinar, atendiendo a la pregunta y recuperando el contexto correcto.
 
-## Stack tecnológico sugerido
+## ¿Qué pasos sigue?
+
+El pipeline tiene tres flujos: se **indexa** el corpus una vez, se **consulta** por cada pregunta, y se **evalúa** la calidad de forma automatizada.
+
+```mermaid
+flowchart TD
+    subgraph Indexacion["🗂️ Indexación (una vez)"]
+        A[Corpus de documentos] --> B[Ingesta / parseo]
+        B --> C[Chunking<br/>sentence · 512/64]
+        C --> D[Embeddings<br/>e5-small · open source]
+        D --> E[(Chroma<br/>vector store)]
+    end
+
+    subgraph Consulta["💬 Consulta (por pregunta)"]
+        Q[Pregunta] --> R[Embed + retrieval<br/>top-k = 4]
+        E -.recupera contexto.-> R
+        R --> G[Generación<br/>Ollama local ó Claude]
+        G --> ANS[Respuesta + fuentes]
+    end
+
+    subgraph Evaluacion["📊 Evaluación (RAGAS)"]
+        GOLD[Dataset dorado<br/>preguntas + ground truth] --> RUN[Corre el RAG]
+        RUN --> JUDGE[Juez LLM<br/>Claude / Ollama]
+        JUDGE --> MET[4 métricas]
+        MET --> REP[Reporte JSON + CSV]
+    end
+
+    E -.mismo pipeline.-> RUN
+```
+
+## Qué hace cada parte
+
+Cada etapa está aislada en su propio módulo, con una interfaz intercambiable, para poder comparar configuraciones (que es justamente el insumo de la evaluación).
+
+| Componente | Módulo | Responsabilidad |
+|---|---|---|
+| **Ingesta** | `ingestion/loaders.py` | Carga y parsea los documentos del corpus según su tipo (PDF, MD, HTML, TXT). |
+| **Chunking** | `ingestion/chunking.py` | Trocea el texto en fragmentos manejables (estrategia `sentence` o `semantic`), con solapamiento para no cortar ideas. |
+| **Embeddings** | `embeddings/embedder.py` | Convierte cada chunk en un vector numérico. Modelo open source (`e5-small`), corre local y sin costo. |
+| **Vector store** | `vectorstore/store.py` | Persiste los vectores en Chroma y resuelve la búsqueda por similitud. Abstracción común para migrar a Qdrant. |
+| **Retrieval** | `retrieval/retriever.py` | Dada una pregunta, recupera los `top_k` chunks más parecidos que sirven de contexto. |
+| **Generación** | `generation/rag_chain.py` | Arma el prompt con la pregunta + el contexto y pide la respuesta al LLM (Ollama local o Claude). |
+| **API** | `api/main.py` | Expone el pipeline como servicio: `POST /query` con inyección de dependencias y ejecución async. |
+| **Evaluación** | `eval/run_eval.py` | Corre el RAG sobre el dataset dorado y calcula las 4 métricas de RAGAS. Genera el reporte. |
+
+## Por qué es bueno tenerlo
+
+**Decisiones con datos, no con intuición.** Cada cambio de configuración (chunking, embeddings, `top_k`, modelo) se puede comparar contra un baseline con números concretos.
+
+**Reproducibilidad.** El reporte de evaluación se versiona junto al código; cualquiera puede regenerarlo y obtener el mismo resultado.
+
+**Detecta alucinaciones.** La métrica de faithfulness expone cuándo el modelo "inventa" afirmaciones que el contexto no respalda — el riesgo número uno de un RAG en producción.
+
+**Portátil y sin costo obligatorio.** Corre 100% local con Ollama (cero gasto) y conmuta a Claude por API cuando se quiere más calidad, sin tocar código.
+
+## Generación local + juez Claude (conmutable)
+
+El proyecto separa **quién genera** las respuestas de **quién las evalúa**. Así se puede generar gratis en local y juzgar con un modelo más confiable, todo por configuración (`.env`):
+
+```mermaid
+flowchart LR
+    subgraph Gen["Generación (LLM_PROVIDER)"]
+        O[🖥️ Ollama local<br/>llama3.1:8b · $0]
+    end
+    subgraph Judge["Juez de eval (JUDGE_PROVIDER)"]
+        C[☁️ Claude Haiku 4.5<br/>métricas confiables]
+    end
+    Gen -->|respuestas| E[RAGAS]
+    Judge -->|puntúa| E
+    E --> R[Reporte]
+```
+
+Se controla con estas variables:
+
+| Variable | Rol | Ejemplo |
+|---|---|---|
+| `LLM_PROVIDER` | Proveedor de **generación** | `ollama` (local, sin costo) |
+| `JUDGE_PROVIDER` | Proveedor del **juez** de eval | `anthropic` (Claude) |
+| `JUDGE_MODEL` | Modelo del juez (si es Claude) | `claude-haiku-4-5-20251001` |
+
+> **Por qué separarlos:** un modelo local 8B genera respuestas razonables, pero como *juez* es inconsistente al producir el JSON estructurado que RAGAS necesita, y devuelve `NaN` en `faithfulness` y `context_precision`. Un modelo Claude barato (Haiku) resuelve eso y entrega las 4 métricas, manteniendo la generación gratis en local.
+
+## Métricas explicadas y resultados
+
+RAGAS mide cuatro dimensiones independientes de la calidad de un RAG:
+
+| Métrica | Qué mide | Cómo se lee |
+|---|---|---|
+| **faithfulness** | ¿Las afirmaciones de la respuesta están respaldadas por el contexto recuperado? | Alto = **no alucina**; se apega a las fuentes. |
+| **answer_relevancy** | ¿La respuesta contesta realmente lo que se preguntó? | Alto = **enfocada**, sin relleno ni divagues. |
+| **context_precision** | De lo recuperado, ¿lo relevante quedó bien rankeado arriba? | Alto = **poco ruido** en el contexto. |
+| **context_recall** | ¿El contexto recuperado cubre toda la información necesaria (vs. la respuesta de referencia)? | Alto = **no se pierde** info clave. |
+
+### Resultados del baseline
+
+Generación con `llama3.1:8b` (local) y juez Claude Haiku 4.5, sobre el dataset dorado de ejemplo:
+
+<p align="center">
+  <img src="docs/img/eval-metrics.svg" width="100%" alt="Resultados de la evaluación RAGAS">
+</p>
+
+| Métrica | Resultado | Lectura |
+|---|:---:|---|
+| answer_relevancy | **0.92** | ✅ Las respuestas están bien enfocadas a la pregunta. |
+| faithfulness | **0.33** | ⚠️ El modelo local agrega afirmaciones no respaldadas por el contexto (riesgo de alucinación). |
+| context_precision | **0.38** | ⚠️ El retrieval mezcla ruido: lo relevante no siempre queda arriba. |
+| context_recall | **0.38** | ⚠️ El contexto recuperado no cubre toda la info esperada. |
+
+**Interpretación.** El pipeline **contesta de forma relevante** (0.92), pero el **retrieval es el cuello de botella** (precision y recall ~0.38) y arrastra la fidelidad hacia abajo: si el contexto llega incompleto o con ruido, el modelo lo completa con su propio conocimiento y baja la faithfulness. Es un baseline honesto sobre un corpus de ejemplo mínimo — y ese es el punto: **los números dicen dónde mejorar**, no solo que "anda".
+
+**Palancas de mejora** (cada una re-evaluable para comparar): ampliar el corpus, chunking `semantic`, agregar un reranker, subir `top_k`, mejores embeddings, o conmutar la generación a Claude. La gracia es que ahora cada cambio se mide, no se supone.
+
+## Stack tecnológico
 
 - **Lenguaje:** Python 3.11+
 - **Orquestación RAG:** LangChain o LlamaIndex (elegir uno; LlamaIndex es más directo para RAG puro)
@@ -49,7 +161,7 @@ El resultado es un servicio consultable (API o CLI) más un reporte de evaluaci�
 - **Ingesta/parseo:** `unstructured`, `pypdf`, `markdown` según el formato del corpus
 - **Testing / calidad:** pytest, ruff, black
 
-## Estructura de carpetas propuesta
+## Estructura de carpetas
 
 Sigue el **src layout con paquete nombrado** (estándar de mercado para un paquete instalable):
 
@@ -77,11 +189,12 @@ rag-pipeline-eval/
 │       ├── retrieval/
 │       │   └── retriever.py     # Índice + búsqueda por similitud
 │       ├── generation/
-│       │   └── rag_chain.py     # Prompt + recuperación + LLM (Claude)
+│       │   └── rag_chain.py     # Prompt + recuperación + LLM (Claude/Ollama)
 │       └── api/
 │           └── main.py          # FastAPI: POST /query
 ├── scripts/
-│   └── index.py                 # Indexación idempotente (CLI)
+│   ├── index.py                 # Indexación idempotente (CLI)
+│   └── check_judge.py           # Smoke test del juez (1 llamada) antes de evaluar
 ├── eval/
 │   ├── datasets/
 │   │   └── qa_golden.jsonl      # Preguntas + respuestas de referencia
@@ -96,7 +209,7 @@ rag-pipeline-eval/
 
 ## Puesta en marcha (scaffold generado)
 
-Stack de arranque: **LlamaIndex** + **embeddings open source** (sentence-transformers, corren en local) + **Claude** para la generación + **Chroma** como vector store.
+Stack de arranque: **LlamaIndex** + **embeddings open source** (sentence-transformers, corren en local) + **Ollama/Claude** para la generación + **Chroma** como vector store.
 
 ### 1. Instalar dependencias (Poetry)
 
@@ -109,7 +222,8 @@ poetry install --with eval,dev # + evaluación (RAGAS) y herramientas de dev
 
 ```bash
 cp .env.example .env
-# Editar .env y completar ANTHROPIC_API_KEY
+# Editar .env: elegir LLM_PROVIDER (ollama/anthropic) y, para el juez,
+# JUDGE_PROVIDER + JUDGE_MODEL (+ ANTHROPIC_API_KEY si se usa Claude)
 ```
 
 ### 3. Indexar el corpus
@@ -133,7 +247,8 @@ curl -X POST localhost:8000/query -H "Content-Type: application/json" \
 ### 5. Evaluar la calidad
 
 ```bash
-poetry run python -m eval.run_eval --tag baseline
+poetry run python -m scripts.check_judge          # verifica el juez (1 llamada)
+poetry run python -m eval.run_eval --tag baseline # corre las 4 métricas
 # Reporte en eval/reports/baseline-<timestamp>.json
 ```
 

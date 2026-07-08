@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # --- Generación (Claude) ---
     anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
-    llm_model: str = Field(default="claude-3-5-sonnet-latest", alias="LLM_MODEL")
+    llm_model: str = Field(default="claude-sonnet-5", alias="LLM_MODEL")
     llm_max_tokens: int = Field(default=1024, alias="LLM_MAX_TOKENS")
     llm_temperature: float = Field(default=0.0, alias="LLM_TEMPERATURE")
 
@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     judge_provider: Literal["", "anthropic", "ollama"] = Field(
         default="", alias="JUDGE_PROVIDER"
     )
+    # Modelo del juez cuando es Anthropic. Vacío = usa `llm_model`.
+    # Un modelo barato (Haiku) alcanza para juzgar y baja el costo de la eval.
+    judge_model: str = Field(default="", alias="JUDGE_MODEL")
 
     # --- Embeddings (open source) ---
     embed_model: str = Field(default="intfloat/multilingual-e5-small", alias="EMBED_MODEL")
@@ -75,4 +78,28 @@ class Settings(BaseSettings):
     @property
     def effective_judge_provider(self) -> str:
         """Proveedor del juez de eval: `judge_provider` si se setea, si no `llm_provider`."""
-        return self.judge_provider or self.llm_p
+        return self.judge_provider or self.llm_provider
+
+    @property
+    def effective_judge_model(self) -> str:
+        """Modelo del juez Claude: `judge_model` si se setea, si no `llm_model`."""
+        return self.judge_model or self.llm_model
+
+    def path(self, value: str) -> Path:
+        """Convierte una ruta relativa de config en absoluta respecto a la raíz."""
+        p = Path(value)
+        return p if p.is_absolute() else (ROOT_DIR / p)
+
+    @property
+    def chroma_dir(self) -> Path:
+        return self.path(self.chroma_path)
+
+    @property
+    def corpus_path(self) -> Path:
+        return self.path(self.corpus_dir)
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Devuelve la instancia única de settings (cacheada)."""
+    return Settings()
