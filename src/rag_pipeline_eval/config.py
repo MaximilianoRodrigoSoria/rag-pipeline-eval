@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     ollama_model: str = Field(default="llama3.1:8b", alias="OLLAMA_MODEL")
     ollama_base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
 
+    # --- Juez de evaluación (RAGAS) ---
+    # Desacopla el juez de la generación: se puede generar local (Ollama) y juzgar
+    # con Claude para métricas más confiables. Vacío = usa el mismo `llm_provider`.
+    judge_provider: Literal["", "anthropic", "ollama"] = Field(
+        default="", alias="JUDGE_PROVIDER"
+    )
+
     # --- Embeddings (open source) ---
     embed_model: str = Field(default="intfloat/multilingual-e5-small", alias="EMBED_MODEL")
 
@@ -65,21 +72,7 @@ class Settings(BaseSettings):
     # --- Datos ---
     corpus_dir: str = Field(default="./data/raw", alias="CORPUS_DIR")
 
-    def path(self, value: str) -> Path:
-        """Convierte una ruta relativa de config en absoluta respecto a la raíz."""
-        p = Path(value)
-        return p if p.is_absolute() else (ROOT_DIR / p)
-
     @property
-    def chroma_dir(self) -> Path:
-        return self.path(self.chroma_path)
-
-    @property
-    def corpus_path(self) -> Path:
-        return self.path(self.corpus_dir)
-
-
-@lru_cache(maxsize=1)
-def get_settings() -> Settings:
-    """Devuelve la instancia única de settings (cacheada)."""
-    return Settings()
+    def effective_judge_provider(self) -> str:
+        """Proveedor del juez de eval: `judge_provider` si se setea, si no `llm_provider`."""
+        return self.judge_provider or self.llm_p

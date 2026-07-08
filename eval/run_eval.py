@@ -5,8 +5,10 @@ cada pregunta la respuesta generada y los contextos recuperados, y calcula las
 métricas de RAGAS: faithfulness, answer_relevancy, context_precision,
 context_recall.
 
-El LLM juez sigue al proveedor configurado (`LLM_PROVIDER`): Claude (Anthropic)
-u Ollama local. Genera un reporte reproducible en `eval/reports/` (JSON + CSV).
+El LLM juez sigue al proveedor configurado. Se puede desacoplar de la
+generación con `JUDGE_PROVIDER` (p. ej. generar local con Ollama y juzgar con
+Claude para métricas más confiables). Genera un reporte reproducible en
+`eval/reports/` (JSON + CSV).
 
 Uso:
     python -m eval.run_eval
@@ -82,8 +84,12 @@ def _patch_ragas_vertexai() -> None:
 
 
 def _judge_llm(settings):
-    """Devuelve el LLM juez según el proveedor configurado (imports diferidos)."""
-    if settings.llm_provider == "ollama":
+    """Devuelve el LLM juez según el proveedor del juez (imports diferidos).
+
+    Usa `effective_judge_provider`, que permite juzgar con Claude aunque la
+    generación sea local (Ollama) — útil para métricas más confiables.
+    """
+    if settings.effective_judge_provider == "ollama":
         from langchain_ollama import ChatOllama
 
         return ChatOllama(
@@ -137,7 +143,7 @@ def main() -> int:
     engine = RagEngine(settings)
     samples = collect_samples(engine, golden)
 
-    print(f"Calculando métricas con RAGAS (juez: {settings.llm_provider}) …")
+    print(f"Calculando métricas con RAGAS (juez: {settings.effective_judge_provider}) …")
     result = run_ragas(samples, settings)
     scores = result.to_pandas()
 
@@ -152,6 +158,7 @@ def main() -> int:
         "timestamp": ts,
         "config": {
             "llm_provider": settings.llm_provider,
+            "judge_provider": settings.effective_judge_provider,
             "embed_model": settings.embed_model,
             "chunk_strategy": settings.chunk_strategy,
             "chunk_size": settings.chunk_size,
@@ -165,14 +172,3 @@ def main() -> int:
     (reports_dir / f"{stem}.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    scores.to_csv(reports_dir / f"{stem}.csv", index=False)
-
-    print("\n=== Resultados (promedios) ===")
-    for metric, value in summary["metrics"].items():
-        print(f"  {metric:20s}: {value:.3f}")
-    print(f"\nReporte guardado en eval/reports/{stem}.json")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
