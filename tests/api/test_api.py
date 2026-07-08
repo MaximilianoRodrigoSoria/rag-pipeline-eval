@@ -21,17 +21,21 @@ class _StubEngine:
         )
 
 
-def test_query_endpoint_ok():
+@pytest.fixture(autouse=True)
+def _override_engine():
+    # Evita construir el RagEngine real (que requeriría API key / índice).
     app.dependency_overrides[get_engine] = lambda: _StubEngine()
-    try:
-        client = TestClient(app)
-        resp = client.post("/query", json={"question": "hola"})
-        assert resp.status_code == 200
-        body = resp.json()
-        assert body["answer"].startswith("stub:")
-        assert body["sources"][0]["source"] == "x.md"
-    finally:
-        app.dependency_overrides.clear()
+    yield
+    app.dependency_overrides.clear()
+
+
+def test_query_endpoint_ok():
+    client = TestClient(app)
+    resp = client.post("/query", json={"question": "hola"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["answer"].startswith("stub:")
+    assert body["sources"][0]["source"] == "x.md"
 
 
 def test_query_validation_422():
