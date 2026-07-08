@@ -94,12 +94,6 @@ rag-pipeline-eval/
     └── test_config.py
 ```
 
-## Criterios de "terminado"
-
-Se puede indexar un corpus, consultar vía API y **regenerar un reporte de evaluación con métricas cuantitativas** que respalden las decisiones de diseño. La calidad del RAG está medida, no asumida.
-
----
-
 ## Puesta en marcha (scaffold generado)
 
 Stack de arranque: **LlamaIndex** + **embeddings open source** (sentence-transformers, corren en local) + **Claude** para la generación + **Chroma** como vector store.
