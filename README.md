@@ -5,37 +5,31 @@
 
 <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/RAG-LangChain_%7C_LlamaIndex-1C3C3C" alt="RAG"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Vector_Store-Chroma_%7C_Qdrant-FF4B4B" alt="Vector Store"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Eval-RAGAS-0F6E56" alt="Eval"></a>
+  <a href="#"><img src="https://img.shields.io/badge/RAG-LangChain_%7C_LlamaIndex-14B8A6" alt="RAG"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Vector_Store-Chroma_%7C_Qdrant-22D3EE" alt="Vector Store"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Eval-RAGAS-1DE9B6" alt="Eval"></a>
   <a href="#"><img src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/DietrichGebert/ponytail"><img src="https://img.shields.io/badge/built_with-ponytail-111111?style=flat-square" alt="ponytail"></a>
-  <img src="https://img.shields.io/badge/layout-src%2Fpackage-2088FF?style=flat-square" alt="src layout">
+  <img src="https://img.shields.io/badge/layout-src%2Fpackage-14B8A6?style=flat-square" alt="src layout">
   <img src="https://img.shields.io/badge/license-MIT-success?style=flat-square" alt="MIT">
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=7C3AED&center=true&vCenter=true&width=820&lines=Retrieval-Augmented+Generation%2C+medido+no+asumido;faithfulness+%C2%B7+relevancia+%C2%B7+context+precision%2Frecall;LlamaIndex+%2B+Chroma+%2B+Claude+%2B+RAGAS" alt="typing SVG">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=1DE9B6&center=true&vCenter=true&width=820&lines=Retrieval-Augmented+Generation%2C+medido+no+asumido;faithfulness+%C2%B7+relevancia+%C2%B7+context+precision%2Frecall;LlamaIndex+%2B+Chroma+%2B+Claude+%2B+RAGAS" alt="typing SVG">
 </p>
 
----
+<hr/>
 
-# rag-pipeline-eval
+<h1 align="center">rag-pipeline-eval</h1>
 
-Pipeline de **Retrieval-Augmented Generation** sobre un corpus propio, con un módulo de **evaluación automatizada** que mide la calidad de las respuestas (faithfulness y relevancia) en lugar de asumirla.
-
-<details>
-<summary><b>📑 Tabla de contenidos</b></summary>
-
-- [Objetivo](#objetivo)
-- [Stack tecnológico sugerido](#stack-tecnológico-sugerido)
-- [Estructura de carpetas propuesta](#estructura-de-carpetas-propuesta)
-- [Puesta en marcha (scaffold generado)](#puesta-en-marcha-scaffold-generado)
-
-</details>
+<p align="center">
+Pipeline de <b>Retrieval-Augmented Generation</b> sobre un corpus propio, con un módulo de
+<b>evaluación automatizada</b> que mide la calidad de las respuestas (faithfulness y relevancia)
+en lugar de asumirla.
+</p>
 
 ## Objetivo
 
