@@ -4,11 +4,11 @@
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/RAG-LangChain_%7C_LlamaIndex-14B8A6" alt="RAG"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Vector_Store-Chroma_%7C_Qdrant-22D3EE" alt="Vector Store"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Eval-RAGAS-1DE9B6" alt="Eval"></a>
-  <a href="#"><img src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white&style=flat-square" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/RAG-LangChain_%7C_LlamaIndex-14B8A6?style=flat-square" alt="RAG"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Vector_Store-Chroma_%7C_Qdrant-22D3EE?style=flat-square" alt="Vector Store"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Eval-RAGAS-1DE9B6?style=flat-square" alt="Eval"></a>
+  <a href="#"><img src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white&style=flat-square" alt="FastAPI"></a>
 </p>
 
 <p align="center">
