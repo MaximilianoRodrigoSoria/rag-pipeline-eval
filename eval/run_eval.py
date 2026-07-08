@@ -2,15 +2,11 @@
 
 Corre el pipeline sobre el dataset dorado (`qa_golden.jsonl`), recolecta para
 cada pregunta la respuesta generada y los contextos recuperados, y calcula las
-métricas de RAGAS:
+métricas de RAGAS: faithfulness, answer_relevancy, context_precision,
+context_recall.
 
-- faithfulness
-- answer_relevancy
-- context_precision
-- context_recall
-
-Genera un reporte reproducible en `eval/reports/` (JSON + CSV) con la fecha y la
-configuración usada, de modo que se puedan comparar corridas entre sí.
+El LLM juez sigue al proveedor configurado (`LLM_PROVIDER`): Claude (Anthropic)
+u Ollama local. Genera un reporte reproducible en `eval/reports/` (JSON + CSV).
 
 Uso:
     python -m eval.run_eval
@@ -58,13 +54,29 @@ def collect_samples(engine: RagEngine, golden: list[dict]) -> dict[str, list]:
     }
 
 
-def run_ragas(samples: dict[str, list], settings) -> "object":
-    """Evalúa con RAGAS usando Claude como juez y embeddings open source.
+def _judge_llm(settings):
+    """Devuelve el LLM juez según el proveedor configurado (imports diferidos)."""
+    if settings.llm_provider == "ollama":
+        from langchain_ollama import ChatOllama
 
-    Import diferido para no exigir las dependencias de eval salvo al evaluar.
-    """
-    from datasets import Dataset
+        return ChatOllama(
+            model=settings.ollama_model,
+            base_url=settings.ollama_base_url,
+            temperature=0.0,
+        )
     from langchain_anthropic import ChatAnthropic
+
+    return ChatAnthropic(
+        model=settings.llm_model,
+        api_key=settings.anthropic_api_key,
+        temperature=0.0,
+        max_tokens=settings.llm_max_tokens,
+    )
+
+
+def run_ragas(samples: dict[str, list], settings) -> "object":
+    """Evalúa con RAGAS usando el juez configurado y embeddings open source."""
+    from datasets import Dataset
     from langchain_huggingface import HuggingFaceEmbeddings
     from ragas import evaluate
     from ragas.metrics import (
@@ -74,20 +86,12 @@ def run_ragas(samples: dict[str, list], settings) -> "object":
         faithfulness,
     )
 
-    judge_llm = ChatAnthropic(
-        model=settings.llm_model,
-        api_key=settings.anthropic_api_key,
-        temperature=0.0,
-        max_tokens=settings.llm_max_tokens,
-    )
-    judge_emb = HuggingFaceEmbeddings(model_name=settings.embed_model)
-
     dataset = Dataset.from_dict(samples)
     return evaluate(
         dataset,
         metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
-        llm=judge_llm,
-        embeddings=judge_emb,
+        llm=_judge_llm(settings),
+        embeddings=HuggingFaceEmbeddings(model_name=settings.embed_model),
     )
 
 
@@ -104,7 +108,7 @@ def main() -> int:
     engine = RagEngine(settings)
     samples = collect_samples(engine, golden)
 
-    print("Calculando métricas con RAGAS (usa el LLM juez) …")
+    print(f"Calculando métricas con RAGAS (juez: {settings.llm_provider}) …")
     result = run_ragas(samples, settings)
     scores = result.to_pandas()
 
@@ -113,13 +117,12 @@ def main() -> int:
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     stem = f"{args.tag}-{ts}"
 
-    # Promedios por métrica
     metric_cols = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
     summary = {
         "tag": args.tag,
         "timestamp": ts,
         "config": {
-            "llm_model": settings.llm_model,
+            "llm_provider": settings.llm_provider,
             "embed_model": settings.embed_model,
             "chunk_strategy": settings.chunk_strategy,
             "chunk_size": settings.chunk_size,

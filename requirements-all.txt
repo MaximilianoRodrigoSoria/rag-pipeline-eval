@@ -1,0 +1,23 @@
+# Todo lo necesario para correr, testear y evaluar (sin Poetry).
+# Instalar:  python -m pip install --user -r requirements-all.txt
+llama-index-core>=0.11,<0.13
+llama-index-embeddings-huggingface>=0.3
+llama-index-llms-anthropic>=0.3
+llama-index-llms-ollama>=0.3
+llama-index-vector-stores-chroma>=0.2
+chromadb>=0.5
+sentence-transformers>=3.0
+fastapi>=0.111
+uvicorn[standard]>=0.30
+pydantic-settings>=2.3
+python-dotenv>=1.0
+# tests
+pytest>=8.2
+httpx>=0.27
+# evaluación (RAGAS)
+ragas>=0.2,<0.3
+datasets>=2.19
+langchain-anthropic>=0.2
+langchain-huggingface>=0.1
+pandas>=2.2
+langchain-ollama>=0.2
