@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rag-pipeline-eval · Maximiliano Rodrigo Soria</title>
+<meta name="description" content="Pipeline RAG sobre corpus propio con evaluación automatizada (RAGAS): faithfulness, relevancia y context precision/recall.">
+<style>
+  :root { --bg:#0F1B22; --card:#152730; --ink:#E6F1EE; --muted:#9FB4AE; --teal:#06C69C; --teal2:#02ECB6; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; line-height:1.6; }
+  .wrap { max-width:960px; margin:0 auto; padding:2rem 1.25rem 4rem; }
+  .banner img { width:100%; border-radius:14px; display:block; }
+  h1 { font-size:2rem; margin:1.5rem 0 .3rem; }
+  h1 span { color:var(--teal2); }
+  .lead { color:var(--muted); font-size:1.05rem; margin:0 0 1.2rem; }
+  .chips { display:flex; flex-wrap:wrap; gap:.5rem; margin:0 0 1.8rem; }
+  .chip { background:#1A1C1F; color:var(--teal2); border:1px solid #26343b; border-radius:999px; padding:.28rem .8rem; font-size:.82rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+  .card { background:var(--card); border:1px solid #223038; border-radius:14px; padding:1.1rem 1.2rem; text-decoration:none; color:inherit; transition:border-color .15s,transform .15s; display:block; }
+  .card:hover { border-color:var(--teal); transform:translateY(-2px); }
+  .card h3 { margin:.1rem 0 .35rem; font-size:1.06rem; color:var(--teal2); }
+  .card p { margin:0; color:var(--muted); font-size:.92rem; }
+  .cta { display:inline-block; margin:2rem 0 0; background:var(--teal); color:#04231c; font-weight:600; text-decoration:none; padding:.7rem 1.3rem; border-radius:10px; }
+  footer { margin-top:2.5rem; padding-top:1.4rem; border-top:1px solid #223038; color:var(--muted); font-size:.88rem; }
+  footer a { color:var(--teal2); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="banner" href="https://www.linkedin.com/in/soriamaximilianorodrigo/" target="_blank" rel="noopener">
+    <img src="img/banner.gif" alt="rag-pipeline-eval">
+  </a>
+  <h1>rag-pipeline-<span>eval</span></h1>
+  <p class="lead">Pipeline RAG sobre corpus propio con evaluación automatizada (RAGAS): faithfulness, relevancia y context precision/recall.</p>
+  <div class="chips">
+    <span class="chip">Python</span>
+    <span class="chip">RAG</span>
+    <span class="chip">LlamaIndex</span>
+    <span class="chip">Chroma</span>
+    <span class="chip">RAGAS</span>
+    <span class="chip">FastAPI</span>
+    <span class="chip">MIT</span>
+  </div>
+  <div class="grid">
+    <a class="card" href="https://github.com/MaximilianoRodrigoSoria/rag-pipeline-eval/tree/master/src/rag_pipeline_eval">
+      <h3>🔎 Pipeline RAG</h3>
+      <p>Ingesta, chunking, embeddings, retrieval y generación.</p>
+    </a>
+    <a class="card" href="https://github.com/MaximilianoRodrigoSoria/rag-pipeline-eval/tree/master/eval">
+      <h3>📊 Evaluación (RAGAS)</h3>
+      <p>Métricas y reportes reproducibles del pipeline.</p>
+    </a>
+    <a class="card" href="https://github.com/MaximilianoRodrigoSoria/rag-pipeline-eval/tree/master/scripts">
+      <h3>⚙️ Indexación</h3>
+      <p>CLI idempotente para indexar el corpus.</p>
+    </a>
+    <a class="card" href="https://github.com/MaximilianoRodrigoSoria/rag-pipeline-eval/tree/master/tests">
+      <h3>🧪 Tests</h3>
+      <p>Suite offline con LLM y embeddings mockeados.</p>
+    </a>
+  </div>
+  <a class="cta" href="https://github.com/MaximilianoRodrigoSoria/rag-pipeline-eval">Ver el repositorio en GitHub →</a>
+  <footer>
+    <strong>Maximiliano Rodrigo Soria</strong> · Software Architect &amp; AI Engineer<br>
+    <a href="mailto:maximilianorodrigosoria@gmail.com">maximilianorodrigosoria@gmail.com</a> ·
+    <a href="https://www.linkedin.com/in/soriamaximilianorodrigo/">LinkedIn</a> · Licencia MIT
+  </footer>
+</div>
+</body>
+</html>
